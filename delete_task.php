@@ -1,13 +1,16 @@
 <?php
-include 'db.php';
+require 'db.php';
 
-if (isset($_GET['id'])) {
-    $id = (int)$_GET['id'];
-    $sql = "DELETE FROM tasks WHERE id = $id";
-    if ($conn->query($sql) === TRUE) {
-        header('Location: index.php');
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $id = $_POST['id'];
+
+    $stmt = $conn->prepare("DELETE FROM tasks WHERE id = ?");
+    $stmt->bind_param("i", $id);
+
+    if ($stmt->execute()) {
+        echo json_encode(['message' => 'Task deleted successfully']);
     } else {
-        echo 'Error: ' . $conn->error;
+        echo json_encode(['message' => 'Failed to delete task']);
     }
 }
 ?>

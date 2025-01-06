@@ -1,15 +1,17 @@
 <?php
-include 'db.php';
+require 'db.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = $conn->real_escape_string($_POST['name']);
-    $description = $conn->real_escape_string($_POST['description']);
+    $name = $_POST['name'];
+    $description = $_POST['description'];
 
-    $sql = "INSERT INTO tasks (name, description) VALUES ('$name', '$description')";
-    if ($conn->query($sql) === TRUE) {
-        header('Location: index.php');
+    $stmt = $conn->prepare("INSERT INTO tasks (name, description) VALUES (?, ?)");
+    $stmt->bind_param("ss", $name, $description);
+
+    if ($stmt->execute()) {
+        echo json_encode(['message' => 'Task added successfully']);
     } else {
-        echo 'Error: ' . $conn->error;
+        echo json_encode(['message' => 'Failed to add task']);
     }
 }
 ?>
