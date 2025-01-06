@@ -1,17 +1,23 @@
+
 <?php
-require 'db.php';
+include('db.php');
 
-$result = $conn->query("SELECT * FROM tasks ORDER BY id DESC");
+$result = $conn->query("SELECT * FROM tasks");
 
-$output = '<ul>';
-while ($row = $result->fetch_assoc()) {
-    $output .= "<li>
-        <strong>{$row['name']}</strong>: {$row['description']}
-        <button class='edit-task' data-id='{$row['id']}' data-name='{$row['name']}' data-description='{$row['description']}'>Edit</button>
-        <button class='delete-task' data-id='{$row['id']}'>Delete</button>
-    </li>";
+if ($result->num_rows > 0) {
+    while($row = $result->fetch_assoc()) {
+        echo '<div class="task-item">';
+        echo '<h4>' . $row['name'] . '</h4>';  // Changed task_name to name
+        echo '<p>' . $row['description'] . '</p>';
+        echo '<small>' . $row['created_at'] . '</small>';
+        echo '<div class="task-actions">';
+        echo '<button class="edit-btn" onclick="window.location=\'edit_task.php?id=' . $row['id'] . '\'">Edit</button>';
+        echo '<button class="delete-btn" data-id="' . $row['id'] . '">Delete</button>';
+        echo '</div>';
+        echo '</div>';
+    }
+} else {
+    echo 'No tasks found';
 }
-$output .= '</ul>';
-
-echo $output;
 ?>
+

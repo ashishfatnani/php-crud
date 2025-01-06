@@ -1,73 +1,87 @@
+<?php include('db.php'); ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Task Manager</title>
+    <title>PHP Task Manager</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Task Manager</h1>
-        <form id="addTaskForm">
-            <input type="text" id="taskName" placeholder="Task Name" required>
-            <textarea id="taskDescription" placeholder="Task Description" required></textarea>
+        <h2>Task Manager</h2>
+        
+        <!-- Add Task Form -->
+        <form id="add-task-form" method="POST">
+            <div class="form-group">
+                <label for="name">Task Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="description">Task Description:</label>
+                <textarea id="description" name="description" required></textarea>
+            </div>
             <button type="submit">Add Task</button>
         </form>
-        <div id="tasks"></div>
+
+        <h3>Task List</h3>
+        <div id="task-list">
+            <!-- Tasks will be dynamically loaded here -->
+        </div>
     </div>
 
     <script>
-        $(document).ready(function () {
-            // Load tasks on page load
-            function loadTasks() {
+        $(document).ready(function() {
+            // Fetch tasks initially
+            fetchTasks();
+
+            // Add task via AJAX
+            $('#add-task-form').submit(function(e) {
+                e.preventDefault();
+                const taskName = $('#name').val();  // Changed to name
+                const taskDesc = $('#description').val();
+
                 $.ajax({
-                    url: 'fetch_tasks.php',
-                    type: 'GET',
-                    success: function (response) {
-                        $('#tasks').html(response);
+                    url: 'add_task.php',
+                    type: 'POST',
+                    data: { name: taskName, description: taskDesc },  // Changed to name
+                    success: function(response) {
+                        // Reset the form
+                        $('#name').val('');  // Changed to name
+                        $('#description').val('');
+                        // Reload the task list
+                        fetchTasks();
                     }
                 });
-            }
-            loadTasks();
-
-            // Add new task
-            $('#addTaskForm').on('submit', function (e) {
-                e.preventDefault();
-                const taskName = $('#taskName').val();
-                const taskDescription = $('#taskDescription').val();
-
-                $.post('add_task.php', { name: taskName, description: taskDescription }, function (response) {
-                    alert(response.message);
-                    loadTasks();
-                    $('#addTaskForm')[0].reset();
-                }, 'json');
             });
 
-            // Delete task
-            $(document).on('click', '.delete-task', function () {
+            // Delete task via AJAX
+            $(document).on('click', '.delete-btn', function() {
                 const taskId = $(this).data('id');
-                $.post('delete_task.php', { id: taskId }, function (response) {
-                    alert(response.message);
-                    loadTasks();
-                }, 'json');
-            });
 
-            // Edit task
-            $(document).on('click', '.edit-task', function () {
-                const taskId = $(this).data('id');
-                const taskName = prompt("Edit Task Name:", $(this).data('name'));
-                const taskDescription = prompt("Edit Task Description:", $(this).data('description'));
-
-                if (taskName && taskDescription) {
-                    $.post('edit_task.php', { id: taskId, name: taskName, description: taskDescription }, function (response) {
-                        alert(response.message);
-                        loadTasks();
-                    }, 'json');
-                }
+                $.ajax({
+                    url: 'delete_task.php',
+                    type: 'POST',
+                    data: { id: taskId },
+                    success: function(response) {
+                        fetchTasks();
+                    }
+                });
             });
         });
+
+        // Function to fetch tasks
+        function fetchTasks() {
+            $.ajax({
+                url: 'fetch_tasks.php',
+                type: 'GET',
+                success: function(response) {
+                    $('#task-list').html(response);
+                }
+            });
+        }
     </script>
 </body>
 </html>
